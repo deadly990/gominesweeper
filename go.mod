@@ -1,3 +1,3 @@
-module github.com/deadly990/Minesweeper-Go
+module github.com/deadly990/minesweepergo
 
 go 1.23.2

@@ -1,0 +1,14 @@
+{{define "mainpage"}}
+<html>
+    <head>
+        <title>MineSweeper Go</title>
+    </head>
+    <body>
+        {{template "minesweeper" .Mine}}
+    </body>
+</html>
+{{end}}
+
+
+
+{{template "mainpage" .}}

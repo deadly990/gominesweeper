@@ -1,0 +1,11 @@
+{{define "minesweeper"}}
+<table>
+{{range .Squares }}
+    <tr>
+        {{range .}}
+            <th>{{if IsVisible .}} {{.}} {{end}}</th>
+        {{end}}
+    </tr>
+{{end}}
+</table>
+{{end}}

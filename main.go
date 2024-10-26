@@ -4,7 +4,9 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/deadly990/gominesweeper/generation"
 	"github.com/deadly990/gominesweeper/view"
 )
 
@@ -24,14 +26,8 @@ func main() {
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
-
-	squares := make([][]view.Square, 5)
-	for i := range squares {
-		squares[i] = make([]view.Square, 5)
-	}
-
-	squares[1][2] = 3
-	mineView := view.MineView{Squares: squares}
+	newBoard := generation.NewBoard(25, 10, 10, time.Now().UnixNano())
+	mineView := view.FromBoard(*newBoard)
 	mainData := view.MainData{Mine: mineView}
 	err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", mainData)
 	if err != nil {

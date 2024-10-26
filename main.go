@@ -14,6 +14,9 @@ func main() {
 	addr := flag.String("addr", ":80", "http service address")
 	flag.Parse()
 	http.Handle("/test", http.HandlerFunc(rootHandler))
+	fs := http.FileServer(http.Dir("./static"))
+
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)

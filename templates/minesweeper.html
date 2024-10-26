@@ -1,9 +1,9 @@
 {{define "minesweeper"}}
-<table>
+<table class="table-fixed">
 {{range .Squares }}
-    <tr>
+    <tr class="h-3">
         {{range .}}
-            <th>{{if IsVisible .}} {{.}} {{end}}</th>
+            <th class="w-3">{{if IsVisible .}} {{.}} {{end}}</th>
         {{end}}
     </tr>
 {{end}}

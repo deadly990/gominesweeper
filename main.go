@@ -37,4 +37,5 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal("ExecuteTemplate:", err)
 	}
+
 }

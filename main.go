@@ -28,7 +28,9 @@ func main() {
 func rootHandler(w http.ResponseWriter, req *http.Request) {
 	newBoard, boardErr := generation.NewBoard(25, 10, 10, time.Now().UnixNano())
 	if boardErr != nil {
-		log.Fatal("NewBoard:", boardErr)
+		log.Println("NewBoard:", boardErr)
+		http.Error(w, boardErr.Error(), 500)
+		return
 	}
 	mineView := view.FromBoard(*newBoard)
 	mainData := view.MainData{Mine: mineView}

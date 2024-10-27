@@ -46,3 +46,12 @@ func TestGeneration_ErrorOverload(test *testing.T) {
 		test.Fail()
 	}
 }
+
+func TestGeneration_Valid(test *testing.T) {
+	_, err := NewBoard(25, 10, 8, 75)
+
+	if err != nil {
+		log.Printf("Error detected: %v\n", err.Error())
+		test.Fail()
+	}
+}

@@ -43,7 +43,7 @@ func NewBoard(mines int, width int, height int, seed int64) (*Board, error) {
 
 func blankField(width int, height int) [][]int {
 	var arr = make([][]int, height)
-	for i := 0; i < width; i++ {
+	for i := 0; i < height; i++ {
 		arr[i] = make([]int, width)
 	}
 	return arr
@@ -104,8 +104,8 @@ func Validate(board Board) (bool, error) {
 
 	var mineCount = func() int {
 		var actual = 0
-		for y := 0; y < width; y++ {
-			for x := 0; x < height; x++ {
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
 				if board.Field[y][x] == -9 {
 					actual++
 				}
@@ -133,8 +133,8 @@ func Validate(board Board) (bool, error) {
 			return minesFound
 		}
 
-		for y := 0; y < width; y++ {
-			for x := 0; x < height; x++ {
+		for y := 0; y < height; y++ {
+			for x := 0; x < width; x++ {
 				if count := countSurroundings(y, x); board.Field[y][x] != count {
 					return false, fmt.Errorf("hint differed from surrounding count hint %d, surroundingCount %d", board.Field[y][x], count)
 				}

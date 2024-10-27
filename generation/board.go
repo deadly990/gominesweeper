@@ -76,7 +76,7 @@ func generateMines(board Board) error {
 	var populateHints = func(y int, x int) {
 		for yOffset := -1; yOffset <= 1; yOffset++ {
 			for xOffset := -1; xOffset <= 1; xOffset++ {
-				if yAdjusted, xAdjusted := y+yOffset, x+xOffset; isValidTile(board, xAdjusted, yAdjusted) {
+				if yAdjusted, xAdjusted := y+yOffset, x+xOffset; isValidTile(board, yAdjusted, xAdjusted) {
 					board.Field[yAdjusted][xAdjusted] += 1
 				}
 			}
@@ -85,14 +85,14 @@ func generateMines(board Board) error {
 
 	var random = rand.New(rand.NewSource((board.seed)))
 	// Iterates until n mines have been successfully placed.
-	for count := 0; count < board.Mines; count++ {
+	for count := 0; count < board.Mines; {
 		var x = random.Intn(width)
 		var y = random.Intn(height)
 		if board.Field[y][x] == -9 {
-			count--
 			continue
 			// Does not count to the progress of mines on the occasion that a mine already exists in a location.
 		}
+		count++
 		board.Field[y][x] = -9
 		populateHints(y, x)
 	}

@@ -5,7 +5,7 @@ import (
 )
 
 type Game struct {
-	board    generation.Board
+	Board    generation.Board
 	Revealed [][]int
 }
 

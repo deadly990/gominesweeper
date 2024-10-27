@@ -1,15 +1,20 @@
 package view
 
 import (
+	"fmt"
 	"html/template"
 
+	"github.com/deadly990/gominesweeper/game"
 	"github.com/deadly990/gominesweeper/generation"
 )
 
-type Square int
+type Square struct {
+	Value int
+	Name  string
+}
 
 func visible(square Square) bool {
-	return square > 0
+	return square.Value > 0
 }
 
 type MineView struct {
@@ -27,7 +32,10 @@ func convert(field [][]int) [][]Square {
 	}
 	for i := range field {
 		for j := range field[i] {
-			squares[i][j] = Square(field[i][j])
+			squares[i][j] = Square{
+				Value: field[i][j],
+				Name:  fmt.Sprintf("%d_%d", i, j),
+			}
 		}
 	}
 	return squares
@@ -36,6 +44,12 @@ func FromBoard(board generation.Board) MineView {
 	return MineView{
 		Remaining: board.Mines,
 		Squares:   convert(board.Field),
+	}
+}
+func FromGame(game game.Game) MineView {
+	return MineView{
+		Remaining: game.Board.Mines,
+		Squares:   convert(game.Revealed),
 	}
 }
 func Generate() *template.Template {

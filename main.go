@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deadly990/gominesweeper/game"
 	"github.com/deadly990/gominesweeper/generation"
 	"github.com/deadly990/gominesweeper/view"
 )
@@ -32,7 +33,8 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, boardErr.Error(), 500)
 		return
 	}
-	mineView := view.FromBoard(*newBoard)
+	game := game.NewGame(*newBoard)
+	mineView := view.FromGame(*game)
 	mainData := view.MainData{Mine: mineView}
 	err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", mainData)
 	if err != nil {

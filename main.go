@@ -26,7 +26,10 @@ func main() {
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
-	newBoard := generation.NewBoard(25, 10, 10, time.Now().UnixNano())
+	newBoard, boardErr := generation.NewBoard(25, 10, 10, time.Now().UnixNano())
+	if boardErr != nil {
+		log.Fatal("NewBoard:", boardErr)
+	}
 	mineView := view.FromBoard(*newBoard)
 	mainData := view.MainData{Mine: mineView}
 	err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", mainData)

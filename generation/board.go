@@ -1,6 +1,7 @@
 package generation
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -10,10 +11,24 @@ type Board struct {
 	seed  int64
 }
 
-func NewBoard(mines int, width int, height int, seed int64) *Board {
+func NewBoard(mines int, width int, height int, seed int64) (*Board, error) {
+	var inputValidation = func() error {
+		if mines < 0 {
+			return fmt.Errorf("mines value cannot be negative")
+		}
+		if width < 1 || height < 1 {
+			return fmt.Errorf("width and height must be greater than or equal to 1. Actual: %dx%d", width, height)
+		}
+		return nil
+	}
+
+	if inputErr := inputValidation(); inputErr != nil {
+		return nil, inputErr
+	}
+
 	board := Board{mines, blankField(width, height), seed}
-	generateMines(board)
-	return &board
+	var genErr = generateMines(board)
+	return &board, genErr
 }
 
 func blankField(width int, height int) [][]int {
@@ -35,16 +50,29 @@ func isValidTile(board Board, x int, y int) bool {
 	return isInRange(board, x, y) && board.Field[x][y] != -1
 }
 
-func generateMines(board Board) {
+func generateMines(board Board) error {
 	var width = len(board.Field)
 	var height = len(board.Field[0])
+
+	var pregenTests = func() error {
+		if board.Mines > width*height {
+			return fmt.Errorf("MineOverload: The board size specified cannot hold the number mines provided")
+		}
+		if !Validate(board) {
+			return fmt.Errorf("InvalidBoard: Board generation failed, created an invalid board")
+		}
+		return nil // No error detected
+	}
+	if testResult := pregenTests(); testResult != nil {
+		return testResult
+	}
 
 	// Traverses all adjacent tiles in a 1 tile radius
 	var populateHints = func(x int, y int) {
 		for xOffset := -1; xOffset <= 1; xOffset++ {
 			for yOffset := -1; yOffset <= 1; yOffset++ {
-				if isValidTile(board, x+xOffset, y+yOffset) {
-					board.Field[x+xOffset][y+yOffset] += 1
+				if xAdjusted, yAdjusted := x+xOffset, y+yOffset; isValidTile(board, xAdjusted, yAdjusted) {
+					board.Field[xAdjusted][yAdjusted] += 1
 				}
 			}
 		}
@@ -63,6 +91,7 @@ func generateMines(board Board) {
 		board.Field[x][y] = -1
 		populateHints(x, y)
 	}
+	return nil
 }
 
 func Validate(board Board) bool {
@@ -83,15 +112,15 @@ func Validate(board Board) bool {
 
 	var hintVeracity = func() bool {
 		var countSurroundings = func(x int, y int) int {
-
-			var minesFound = 0
 			if board.Field[x][y] == -1 {
 				return -1
+				// Returns -1 for mines to ensure correct behavior.
 			}
+			var minesFound = 0
 			for xOffset := -1; xOffset <= 1; xOffset++ {
 				for yOffset := -1; yOffset <= 1; yOffset++ {
-					if isInRange(board, x+xOffset, y+yOffset) {
-						if board.Field[x+xOffset][y+yOffset] == -1 {
+					if xAdjusted, yAdjusted := x+xOffset, y+yOffset; isInRange(board, xAdjusted, yAdjusted) {
+						if board.Field[xAdjusted][yAdjusted] == -1 {
 							minesFound++
 						}
 					}
@@ -108,6 +137,7 @@ func Validate(board Board) bool {
 			}
 		}
 		return true
+		// Returns true if and only if all hints have the correct number of mines adjacent.
 	}
 
 	return mineCount() && hintVeracity()

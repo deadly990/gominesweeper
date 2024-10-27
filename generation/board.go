@@ -34,8 +34,9 @@ func NewBoard(mines int, width int, height int, seed int64) (*Board, error) {
 
 	board := Board{mines, blankField(width, height), seed}
 	var genErr = generateMines(board)
-	if !Validate(board) {
-		return &board, fmt.Errorf("Board generation failed, board is invalid")
+	valid, err := Validate(board)
+	if !valid {
+		return &board, fmt.Errorf("Board generation failed, board is invalid: %s", err)
 	}
 	return &board, genErr
 }
@@ -98,10 +99,10 @@ func generateMines(board Board) error {
 	return nil
 }
 
-func Validate(board Board) bool {
+func Validate(board Board) (bool, error) {
 	width, height := BoardSize(board)
 
-	var mineCount = func() bool {
+	var mineCount = func() int {
 		var actual = 0
 		for y := 0; y < width; y++ {
 			for x := 0; x < height; x++ {
@@ -110,10 +111,10 @@ func Validate(board Board) bool {
 				}
 			}
 		}
-		return actual == board.Mines
+		return actual
 	}
 
-	var hintVeracity = func() bool {
+	var hintVeracity = func() (bool, error) {
 		var countSurroundings = func(y int, x int) int {
 			if board.Field[y][x] == -9 {
 				return -9
@@ -134,14 +135,19 @@ func Validate(board Board) bool {
 
 		for y := 0; y < width; y++ {
 			for x := 0; x < height; x++ {
-				if board.Field[y][x] != countSurroundings(y, x) {
-					return false
+				if count := countSurroundings(y, x); board.Field[y][x] != count {
+					return false, fmt.Errorf("hint differed from surrounding count hint %d, surroundingCount %d", board.Field[y][x], count)
 				}
 			}
 		}
-		return true
+		return true, nil
 		// Returns true if and only if all hints have the correct number of mines adjacent.
 	}
-
-	return mineCount() && hintVeracity()
+	actual := mineCount()
+	if actual > board.Mines {
+		return false, fmt.Errorf("too many mines placed Actual %d, Expected %d", actual, board.Mines)
+	} else if actual < board.Mines {
+		return false, fmt.Errorf("too few mines placed Actual %d, Expected %d", actual, board.Mines)
+	}
+	return hintVeracity()
 }

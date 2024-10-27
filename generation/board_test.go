@@ -20,8 +20,8 @@ func TestValidation_Functional(test *testing.T) {
 	}
 	validBoard.seed = 70
 
-	if validation := Validate(*validBoard); !validation {
-		log.Printf("Expected Generation#Validate to return True. Actual: %v\n", validation)
+	if validation, err := Validate(*validBoard); !validation {
+		log.Printf("Expected Generation#Validate to return True. Actual: %v Error: %s\n", validation, err)
 		test.Fail()
 	}
 }
@@ -34,8 +34,8 @@ func TestValidation_AllMines(test *testing.T) {
 		{-9, -9},
 	}
 
-	if validation := Validate(*board); !validation {
-		log.Printf("Expected Generation#Validate to return True. Actual: %v\n", validation)
+	if validation, err := Validate(*board); !validation {
+		log.Printf("Expected Generation#Validate to return True. Actual: %v Error: %s\n", validation, err)
 		test.Fail()
 	}
 }

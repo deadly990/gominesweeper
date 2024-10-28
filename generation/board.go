@@ -11,9 +11,7 @@ type Board struct {
 	seed  int64
 }
 
-func getSeed(board Board) int64 {
-	return board.seed
-}
+// Returns the width and height of a board.
 func BoardSize(board Board) (int, int) {
 	return len(board.Field[0]), len(board.Field)
 }
@@ -49,14 +47,14 @@ func blankField(width int, height int) [][]int {
 	return arr
 }
 
-func isInRange(board Board, y int, x int) bool {
+func IsInRange(board Board, y int, x int) bool {
 	width, height := BoardSize(board)
 	return (x >= 0 && x < width) && (y >= 0 && y < height)
 }
 
 // Returns false if the tile is out of bounds or is a mine.
 func isValidTile(board Board, y int, x int) bool {
-	return isInRange(board, y, x) && board.Field[y][x] != -9
+	return IsInRange(board, y, x) && board.Field[y][x] != -9
 }
 
 func generateMines(board Board) error {
@@ -123,7 +121,7 @@ func Validate(board Board) (bool, error) {
 			var minesFound = 0
 			for yOffset := -1; yOffset <= 1; yOffset++ {
 				for xOffset := -1; xOffset <= 1; xOffset++ {
-					if yAdjusted, xAdjusted := y+yOffset, x+xOffset; isInRange(board, yAdjusted, xAdjusted) {
+					if yAdjusted, xAdjusted := y+yOffset, x+xOffset; IsInRange(board, yAdjusted, xAdjusted) {
 						if board.Field[yAdjusted][xAdjusted] == -9 {
 							minesFound++
 						}

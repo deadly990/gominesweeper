@@ -47,7 +47,7 @@ func Move(game Game, y int, x int) {
 	}
 	var addNeighbors = func(list *[]Coordinate, origin Coordinate) {
 		for _, coord := range Adjacent(origin) {
-			if generation.IsInRange(game.board, coord.y, coord.x) && *tileValue(game, coord) < 0 {
+			if generation.IsInRange(game.Board, coord.y, coord.x) && *tileValue(game, coord) < 0 {
 				*list = append(*list, coord)
 			}
 		}

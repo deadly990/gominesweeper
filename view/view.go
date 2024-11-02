@@ -36,6 +36,7 @@ func convert(field [][]int, game string) [][]Square {
 			squares[i][j] = Square{
 				Value: field[i][j],
 				Name:  fmt.Sprintf("%d_%d", i, j),
+				Game: game
 			}
 		}
 	}

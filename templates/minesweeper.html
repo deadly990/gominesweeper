@@ -3,7 +3,7 @@
 {{range .Squares }}
     <tr class="h-3">
         {{range .}}
-            <th class="w-3" ><a id="{{.Name}}" href="/click/{{.Name}}?game={{.Game}}">{{if IsVisible .}} {{.Value}} {{end}}</a></th>
+            <th class="w-3" ><a id="{{.Name}}" href="/click/{{.Game}}/{{.Name}}">{{if IsVisible .}} {{.Value}} {{end}}</a></th>
         {{end}}
     </tr>
 {{end}}

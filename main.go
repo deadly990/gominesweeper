@@ -9,14 +9,30 @@ import (
 	"github.com/deadly990/gominesweeper/game"
 	"github.com/deadly990/gominesweeper/generation"
 	"github.com/deadly990/gominesweeper/view"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 var mainPageTemplate = view.Generate()
 
 func main() {
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Route("/game", func(r chi.Router) {
+		r.Get("/", rootHandler)
+		r.Route("/{gameId}/click/{clickLocation}", func(r chi.Router) {
+			r.Use(GameCtx)
+			r.Use(ClickCtx)
+		})
+	})
 	addr := flag.String("addr", ":80", "http service address")
 	flag.Parse()
 	http.Handle("/test", http.HandlerFunc(rootHandler))
+	http.Handle("/click/:game/:name", http.HandlerFunc(clickHandler))
 	fs := http.FileServer(http.Dir("./static"))
 
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -40,5 +56,11 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal("ExecuteTemplate:", err)
 	}
+
+}
+func GameCtx(next http.Handler) http.Handler {
+	return next
+}
+func clickHandler(w http.ResponseWriter, req *http.Request) {
 
 }

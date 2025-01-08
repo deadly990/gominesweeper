@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,6 +17,11 @@ import (
 
 var mainPageTemplate = view.Generate()
 
+type contextName string
+
+const GameIDString contextName = "gameId"
+const ClickLocationString contextName = "clickLocation"
+
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -24,19 +31,19 @@ func main() {
 
 	r.Route("/game", func(r chi.Router) {
 		r.Get("/", rootHandler)
-		r.Route("/{gameId}/click/{clickLocation}", func(r chi.Router) {
+		r.Route(fmt.Sprintf("/{%s}/click/{%s}", GameIDString, ClickLocationString), func(r chi.Router) {
 			r.Use(GameCtx)
 			r.Use(ClickCtx)
+			r.Get("/", clickHandler)
 		})
 	})
 	addr := flag.String("addr", ":80", "http service address")
 	flag.Parse()
 	http.Handle("/test", http.HandlerFunc(rootHandler))
-	http.Handle("/click/:game/:name", http.HandlerFunc(clickHandler))
 	fs := http.FileServer(http.Dir("./static"))
 
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	err := http.ListenAndServe(*addr, nil)
+	err := http.ListenAndServe(*addr, r)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
@@ -59,11 +66,23 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 
 }
 func GameCtx(next http.Handler) http.Handler {
-	return next
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		game := chi.URLParam(req, string(GameIDString))
+		ctx := context.WithValue(req.Context(), GameIDString, game)
+		next.ServeHTTP(w, req.WithContext(ctx))
+	})
+
 }
 func ClickCtx(next http.Handler) http.Handler {
-	return next
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		click := chi.URLParam(req, string(ClickLocationString))
+		ctx := context.WithValue(req.Context(), ClickLocationString, click)
+		next.ServeHTTP(w, req.WithContext(ctx))
+	})
 }
 func clickHandler(w http.ResponseWriter, req *http.Request) {
+	gameCtx := req.Context().Value(GameIDString)
+	clickCtx := req.Context().Value(ClickLocationString)
 
+	log.Default().Printf("Game: %s Click: %s", gameCtx, clickCtx)
 }

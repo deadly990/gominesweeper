@@ -82,3 +82,24 @@ func TestDiagonalCornerReveal(test *testing.T) {
 		test.Fail()
 	}
 }
+
+func TestOrderOfOperations(test *testing.T) {
+	board, _ := generation.NewBoard(50, 100, 100, 1)
+
+	game1 := *NewGame(*board)
+
+	game2 := *NewGame(*board)
+
+	Move(game1, 0, 0)
+	Move(game1, 1, 1)
+	Move(game1, 50, 50)
+
+	Move(game2, 50, 50)
+	Move(game2, 1, 1)
+	Move(game2, 0, 0)
+
+	if areArraysEqual(game1.Revealed, game2.Revealed) {
+		log.Printf("move order changes revealed")
+		test.Fail()
+	}
+}

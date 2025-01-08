@@ -61,6 +61,9 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 func GameCtx(next http.Handler) http.Handler {
 	return next
 }
+func ClickCtx(next http.Handler) http.Handler {
+	return next
+}
 func clickHandler(w http.ResponseWriter, req *http.Request) {
 
 }

@@ -8,7 +8,7 @@ import (
 type Board struct {
 	Mines int
 	Field [][]int
-	seed  int64
+	Seed  int64
 }
 
 // Returns the width and height of a board.
@@ -81,7 +81,7 @@ func generateMines(board Board) error {
 		}
 	}
 
-	var random = rand.New(rand.NewSource((board.seed)))
+	var random = rand.New(rand.NewSource((board.Seed)))
 	// Iterates until n mines have been successfully placed.
 	for count := 0; count < board.Mines; {
 		var x = random.Intn(width)

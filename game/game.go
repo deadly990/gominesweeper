@@ -7,6 +7,7 @@ import (
 type Game struct {
 	Board    generation.Board
 	Revealed [][]int
+	Moves    []Coordinate
 }
 
 func NewGame(board generation.Board) *Game {
@@ -29,11 +30,12 @@ func NewGame(board generation.Board) *Game {
 			}
 		}
 	}
-	return &Game{board, revealed}
+
+	return &Game{board, revealed, []Coordinate{}}
 }
 
 func tileValue(game Game, coord Coordinate) *int {
-	return &(game.Revealed[coord.y][coord.x])
+	return &(game.Revealed[coord.Y][coord.X])
 }
 
 func Move(game Game, y int, x int) {
@@ -47,19 +49,21 @@ func Move(game Game, y int, x int) {
 	}
 	var addNeighbors = func(list *[]Coordinate, origin Coordinate) {
 		for _, coord := range Adjacent(origin) {
-			if generation.IsInRange(game.Board, coord.y, coord.x) && *tileValue(game, coord) < 0 {
+			if generation.IsInRange(game.Board, coord.Y, coord.X) && *tileValue(game, coord) < 0 {
 				*list = append(*list, coord)
 			}
 		}
 	}
 	var queue []Coordinate
-	queue = append(queue, Coordinate{x, y})
+	coord := Coordinate{x, y}
+	queue = append(queue, coord)
 	for len(queue) > 0 {
 		queuedCoord := queue[0]
 		queue = queue[1:]
 		if *tileValue(game, queuedCoord) == -10 {
 			addNeighbors(&queue, queuedCoord)
 		}
-		reveal(queuedCoord.y, queuedCoord.x)
+		reveal(queuedCoord.Y, queuedCoord.X)
 	}
+	game.Moves = append(game.Moves, coord)
 }

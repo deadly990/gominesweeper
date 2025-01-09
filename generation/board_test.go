@@ -18,7 +18,7 @@ func TestValidation_Functional(test *testing.T) {
 		{2, 2, 1, 0, 0, 1, 1},
 		{1, -9, 1, 0, 0, 1, -9},
 	}
-	validBoard.seed = 70
+	validBoard.Seed = 70
 
 	if validation, err := Validate(*validBoard); !validation {
 		log.Printf("Expected Generation#Validate to return True. Actual: %v Error: %s\n", validation, err)

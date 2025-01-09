@@ -5,17 +5,17 @@ type Coordinate struct {
 	Y int
 }
 
-func Offset(coord Coordinate, xOffset int, yOffset int) Coordinate {
-	coord.X += xOffset
-	coord.Y += yOffset
-	return coord
+// Returns a new Coordinate with X and Y values augmented by corresponding arguments.
+func (coord Coordinate) Offset(xOffset int, yOffset int) Coordinate {
+	return Coordinate{coord.X + xOffset, coord.Y + yOffset}
 }
-func Adjacent(coord Coordinate) []Coordinate {
+
+// Returns a slice containing adjacent Coordinates to input param.
+func (coord Coordinate) Adjacent() []Coordinate {
 	neighbors := []Coordinate{}
 	for yOffset := -1; yOffset <= 1; yOffset++ {
 		for xOffset := -1; xOffset <= 1; xOffset++ {
-			xAdjusted, yAdjusted := coord.X+xOffset, coord.Y+yOffset
-			neighbors = append(neighbors, Coordinate{xAdjusted, yAdjusted})
+			neighbors = append(neighbors, coord.Offset(xOffset, yOffset))
 		}
 	}
 	return neighbors

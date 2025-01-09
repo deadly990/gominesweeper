@@ -12,7 +12,7 @@ type Board struct {
 }
 
 // Returns the width and height of a board.
-func BoardSize(board Board) (int, int) {
+func (board Board) BoardSize() (int, int) {
 	return len(board.Field[0]), len(board.Field)
 }
 func NewBoard(mines int, width int, height int, seed int64) (*Board, error) {
@@ -31,14 +31,13 @@ func NewBoard(mines int, width int, height int, seed int64) (*Board, error) {
 	}
 
 	board := Board{mines, blankField(width, height), seed}
-	var genErr = generateMines(board)
-	valid, err := Validate(board)
+	var genErr = board.generateMines()
+	valid, err := board.Validate()
 	if !valid {
 		return &board, fmt.Errorf("Board generation failed, board is invalid: %s", err)
 	}
 	return &board, genErr
 }
-
 func blankField(width int, height int) [][]int {
 	var arr = make([][]int, height)
 	for i := 0; i < height; i++ {
@@ -47,18 +46,19 @@ func blankField(width int, height int) [][]int {
 	return arr
 }
 
-func IsInRange(board Board, y int, x int) bool {
-	width, height := BoardSize(board)
+// Returns true
+func (board Board) IsInRange(y int, x int) bool {
+	width, height := board.BoardSize()
 	return (x >= 0 && x < width) && (y >= 0 && y < height)
 }
 
 // Returns false if the tile is out of bounds or is a mine.
 func isValidTile(board Board, y int, x int) bool {
-	return IsInRange(board, y, x) && board.Field[y][x] != -9
+	return board.IsInRange(y, x) && board.Field[y][x] != -9
 }
 
-func generateMines(board Board) error {
-	width, height := BoardSize(board)
+func (board Board) generateMines() error {
+	width, height := board.BoardSize()
 
 	var pregenTests = func() error {
 		if board.Mines > width*height {
@@ -97,9 +97,10 @@ func generateMines(board Board) error {
 	return nil
 }
 
-func Validate(board Board) (bool, error) {
-	width, height := BoardSize(board)
-
+// Returns true if a Board is considered valid, false otherwise.
+func (board Board) Validate() (bool, error) {
+	width, height := board.BoardSize()
+	// Counts mines throughout a board.
 	var mineCount = func() int {
 		var actual = 0
 		for y := 0; y < height; y++ {
@@ -111,7 +112,7 @@ func Validate(board Board) (bool, error) {
 		}
 		return actual
 	}
-
+	// Ensures that a hint displays the correct number.
 	var hintVeracity = func() (bool, error) {
 		var countSurroundings = func(y int, x int) int {
 			if board.Field[y][x] == -9 {
@@ -121,7 +122,7 @@ func Validate(board Board) (bool, error) {
 			var minesFound = 0
 			for yOffset := -1; yOffset <= 1; yOffset++ {
 				for xOffset := -1; xOffset <= 1; xOffset++ {
-					if yAdjusted, xAdjusted := y+yOffset, x+xOffset; IsInRange(board, yAdjusted, xAdjusted) {
+					if yAdjusted, xAdjusted := y+yOffset, x+xOffset; board.IsInRange(yAdjusted, xAdjusted) {
 						if board.Field[yAdjusted][xAdjusted] == -9 {
 							minesFound++
 						}

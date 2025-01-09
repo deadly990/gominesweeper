@@ -23,6 +23,7 @@ type Move struct {
 	Y int `json:"y"`
 }
 
+// GameSave stores all the data required to represent and rebuild a Game.
 type GameSave struct {
 	Seed      int64  `json:"seed"`
 	Width     int    `json:"width"`
@@ -31,9 +32,10 @@ type GameSave struct {
 	Moves     []Move `json:"moves"`
 }
 
+// Returns a reference to a GameSave from a Game.
 func FromGame(game game.Game) *GameSave {
 	seed := game.Board.Seed
-	width, height := generation.BoardSize(game.Board)
+	width, height := game.Board.BoardSize()
 	mineCount := game.Board.Mines
 	savedMoves := []Move{}
 	for _, coordinate := range game.Moves {
@@ -43,6 +45,7 @@ func FromGame(game game.Game) *GameSave {
 	return &GameSave{seed, width, height, mineCount, savedMoves}
 }
 
+// Recreates and returns a Game from a GameSave.
 func (gameSave *GameSave) ToGame() *game.Game {
 	board, err := generation.NewBoard(
 		gameSave.MineCount,
@@ -70,6 +73,7 @@ func (gameSave *GameSave) Save(name string) error {
 	return gameSave.Encode(file)
 }
 
+// Encode will write a JSON encoded GameSave to the specified io.Writer.
 func (gameSave *GameSave) Encode(writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	return encoder.Encode(gameSave)
@@ -89,15 +93,19 @@ func Load(name string) *GameSave {
 	}
 	return &gameSave
 }
+
+// Decode populates a GameSave with data from an io.Reader.
 func (gameSave *GameSave) Decode(reader io.Reader) error {
 	decoder := json.NewDecoder(reader)
 	return decoder.Decode(&gameSave)
 }
 
+// Returns true if a Move's X and Y are equivalent to the passed in Move, otherwise false.
 func (receiver *Move) EquivalentTo(other Move) bool {
 	return receiver.X == other.X && receiver.Y == other.Y
 }
 
+// Returns true if a GameSave has equivalent fields to the passed in GameSave, otherwise false.
 func (receiver *GameSave) EquivalentTo(other GameSave) bool {
 	if receiver.Seed != other.Seed {
 		return false

@@ -89,31 +89,3 @@ func TestCodecInverseEquivalence(test *testing.T) {
 	}
 	// Produce seed, width, height, and mine count of failed test.
 }
-
-func GameFunctionalPostDecode(test testing.T) {
-	var board generation.Board
-	board.Field = [][]int{
-		{2, 2, 1, 0},   // [ 2,  2,  1, 0]
-		{-9, -9, 1, 0}, // [-9, -9,  1, 0]
-		{-9, 4, 2, 1},  // [-9,  4,  2, 1]
-		{1, 2, -9, 1},  // [ 1,  2, -9, 1]
-		{0, 1, 1, 1},   // [ 0,  1,  1, 1]
-	}
-	game := game.NewGame(board)
-	game.Clear(0, 0)
-	gameSave := FromGame(*game)
-	buf := new(bytes.Buffer)
-	err := gameSave.Encode(buf)
-	if err != nil {
-		log.Printf("Error in GameSave encoding: %s", err)
-		test.FailNow()
-	}
-
-	loaded := GameSave{}
-	loaded.Decode(strings.NewReader(buf.String()))
-
-	log.Printf("Moves: %+v", loaded.Moves)
-
-	loaded.ToGame().Clear()
-
-}

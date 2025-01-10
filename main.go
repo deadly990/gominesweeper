@@ -10,6 +10,8 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/deadly990/gominesweeper/game"
@@ -36,6 +38,7 @@ func main() {
 
 	r.Route("/game", func(r chi.Router) {
 		r.Get("/", rootHandler)
+
 		r.Route(fmt.Sprintf("/{%s}/click/{%s}", GameIDString, ClickLocationString), func(r chi.Router) {
 			r.Use(GameCtx)
 			r.Use(ClickCtx)
@@ -73,7 +76,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal("ExecuteTemplate:", err)
 	}
-	defer storage.FromGame(*game).Save(gameName)
+	storage.FromGame(*game).Save(gameName)
 }
 
 func generateName(seed int64) string {
@@ -99,8 +102,45 @@ func ClickCtx(next http.Handler) http.Handler {
 	})
 }
 func clickHandler(w http.ResponseWriter, req *http.Request) {
-	gameCtx := req.Context().Value(GameIDString)
-	clickCtx := req.Context().Value(ClickLocationString)
+	// Handle click
+	gameCtx := req.Context().Value(GameIDString).(string)
+	clickCtx := req.Context().Value(ClickLocationString).(string)
+
+	x, y, err := parseClickLocation(clickCtx)
+	if err != nil {
+		log.Fatal("parseClickLocation:", err)
+	}
+	game := storage.Load(gameCtx).ToGame()
+	for _, move := range game.Moves { // Make all the moves stored in the save.
+		game.Clear(move.Y, move.X) // Infinite loop but not
+	}
+	game.Move(game.Clear, x, y)
+
+	// Display updated board
+	mineView := view.FromGame(*game, gameCtx)
+	mainData := view.MainData{Mine: mineView}
+	err = mainPageTemplate.ExecuteTemplate(w, "mainpage.html", mainData)
+	if err != nil {
+		log.Fatal("ExecuteTemplate:", err)
+	}
+
+	storage.FromGame(*game).Save(gameCtx)
 
 	log.Default().Printf("Game: %s Click: %s", gameCtx, clickCtx)
+}
+
+func parseClickLocation(clickCtx string) (int, int, error) {
+	clickArr := strings.Split(clickCtx, "_")
+	if len(clickArr) != 2 {
+		return -1, -1, fmt.Errorf("click location parsing encountered an error. Array length was unexpected. Actual: %+v", clickArr)
+	}
+	intArr := []int{}
+	for _, val := range clickArr {
+		converted, err := strconv.Atoi(val)
+		if err != nil {
+			return -1, -1, fmt.Errorf("click location parsing encountered an error. Error occurred whilst parsing string to integer. Actual: %s", val)
+		}
+		intArr = append(intArr, converted)
+	}
+	return intArr[1], intArr[0], nil
 }

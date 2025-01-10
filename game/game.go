@@ -34,12 +34,17 @@ func NewGame(board generation.Board) *Game {
 	return &Game{board, revealed, []Coordinate{}}
 }
 
-func (game Game) tileValue(coord Coordinate) *int {
+func (game *Game) tileValue(coord Coordinate) *int {
 	return &(game.Revealed[coord.Y][coord.X])
 }
 
+func (game *Game) Move(action func(int, int), x int, y int) {
+	action(y, x)
+	game.Moves = append(game.Moves, Coordinate{x, y})
+}
+
 // Clears a tile at position (y, x)
-func (game Game) Clear(y int, x int) {
+func (game *Game) Clear(y int, x int) {
 	var reveal = func(y int, x int) {
 		coord := Coordinate{x, y}
 		switch value := game.Revealed[y][x]; value {
@@ -67,5 +72,4 @@ func (game Game) Clear(y int, x int) {
 		}
 		reveal(queuedCoord.Y, queuedCoord.X)
 	}
-	game.Moves = append(game.Moves, coord)
 }

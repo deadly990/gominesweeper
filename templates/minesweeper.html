@@ -1,11 +1,11 @@
 {{define "minesweeper"}}
 <div id="board">
-    <table class="table-fixed">
+    <table class="table-fixed m-auto">
     {{range .Squares }}
         <tr class="h-5">
             {{range .}}
-                <td class="w-5">
-                    <a id="{{.Location}}" href="/game/{{.GameID}}/click/{{.Location}}">{{if IsVisible .}} {{.Value}} {{end}}</a>
+                <td class="w-5 border border-solid border-black border-collapse">
+                    <a class="w-5 h-5" id="{{.Location}}" href="/game/{{.GameID}}/click/{{.Location}}">{{if IsVisible .}} {{if eq .Value 9}} <img src="/static/mine.png"> {{else}} {{.Value}} {{end}} {{else}} <div class="w-5 h-5"></div> {{end}}</a>
                 </td>
             {{end}}
         </tr>

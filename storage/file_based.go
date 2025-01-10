@@ -36,11 +36,7 @@ func FromGame(game game.Game) *GameSave {
 	seed := game.Board.Seed
 	width, height := game.Board.BoardSize()
 	mineCount := game.Board.Mines
-	savedMoves := []Move{}
-	for _, coordinate := range game.Moves {
-		translation := &Move{coordinate.X, coordinate.Y}
-		savedMoves = append(savedMoves, *translation)
-	}
+	savedMoves := translateCoordinates(game.Moves)
 	return &GameSave{seed, width, height, mineCount, savedMoves}
 }
 
@@ -55,7 +51,28 @@ func (gameSave *GameSave) ToGame() *game.Game {
 	if err != nil {
 		log.Fatalf("Encountered an error in converting GameSave to Game: %s", err)
 	}
-	return game.NewGame(*board)
+	game := game.NewGame(*board)
+	game.Moves = translateMoves(gameSave.Moves)
+
+	return game
+}
+
+func translateCoordinates(coordinates []game.Coordinate) []Move {
+	moves := []Move{}
+	for _, coordinate := range coordinates {
+		translation := Move{coordinate.X, coordinate.Y}
+		moves = append(moves, translation)
+	}
+	return moves
+}
+
+func translateMoves(moves []Move) []game.Coordinate {
+	coordinates := []game.Coordinate{}
+	for _, move := range moves {
+		translation := game.Coordinate{move.X, move.Y}
+		coordinates = append(coordinates, translation)
+	}
+	return coordinates
 }
 
 func (gameSave *GameSave) Save(name string) error {

@@ -22,7 +22,7 @@ func TestEncoding(test *testing.T) {
 		{0, 1, 1, 1},   // [ 0,  1,  1, 1]
 	}
 	game := game.NewGame(board)
-
+	game.Clear(0, 3)
 	gameSave := FromGame(*game)
 	buf := new(bytes.Buffer)
 	err := gameSave.Encode(buf)
@@ -32,7 +32,7 @@ func TestEncoding(test *testing.T) {
 	}
 
 	result := buf.String()
-	if result != `{"seed":0,"width":4,"height":5,"mineCount":0,"moves":[]}`+"\n" { // JSON Encoding adds a newline after encoding. Added \n to expect correct result.
+	if result != `{"seed":0,"width":4,"height":5,"mineCount":0,"moves":[{"x":3,"y":0}]}`+"\n" { // JSON Encoding adds a newline after encoding. Added \n to expect correct result.
 		log.Printf("GameSave encoding did not produce expected result. Actual: %v", result)
 		test.Fail()
 	}
@@ -40,14 +40,14 @@ func TestEncoding(test *testing.T) {
 
 func TestDecoding(test *testing.T) {
 	decoded := &GameSave{}
-	reader := strings.NewReader(`{"seed":0,"width":4,"height":5,"mineCount":0,"moves":[]}`)
+	reader := strings.NewReader(`{"seed":0,"width":4,"height":5,"mineCount":0,"moves":[{"x":3,"y":0}]}`)
 	err := decoded.Decode(reader)
 	if err != nil {
 		log.Printf("Decoding from JSON String produced an error: %s", err)
 		test.FailNow()
 	}
-
-	expected := &GameSave{0, 4, 5, 0, []Move{}}
+	move := Move{3, 0}
+	expected := &GameSave{0, 4, 5, 0, []Move{move}}
 	if !expected.EquivalentTo(*decoded) {
 		log.Printf("Decoded GameSave did not produce expected results. Actual: %+v", decoded)
 		test.Fail()
@@ -88,4 +88,32 @@ func TestCodecInverseEquivalence(test *testing.T) {
 		}
 	}
 	// Produce seed, width, height, and mine count of failed test.
+}
+
+func GameFunctionalPostDecode(test testing.T) {
+	var board generation.Board
+	board.Field = [][]int{
+		{2, 2, 1, 0},   // [ 2,  2,  1, 0]
+		{-9, -9, 1, 0}, // [-9, -9,  1, 0]
+		{-9, 4, 2, 1},  // [-9,  4,  2, 1]
+		{1, 2, -9, 1},  // [ 1,  2, -9, 1]
+		{0, 1, 1, 1},   // [ 0,  1,  1, 1]
+	}
+	game := game.NewGame(board)
+	game.Clear(0, 0)
+	gameSave := FromGame(*game)
+	buf := new(bytes.Buffer)
+	err := gameSave.Encode(buf)
+	if err != nil {
+		log.Printf("Error in GameSave encoding: %s", err)
+		test.FailNow()
+	}
+
+	loaded := GameSave{}
+	loaded.Decode(strings.NewReader(buf.String()))
+
+	log.Printf("Moves: %+v", loaded.Moves)
+
+	loaded.ToGame().Clear()
+
 }

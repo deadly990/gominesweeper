@@ -612,6 +612,10 @@ video {
   border-collapse: collapse;
 }
 
+.border {
+  border-width: 1px;
+}
+
 .border-solid {
   border-style: solid;
 }

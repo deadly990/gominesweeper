@@ -8,50 +8,51 @@ import (
 	"github.com/deadly990/gominesweeper/generation"
 )
 
-type Square struct {
-	Value int
-	Name  string
-	Game  string
+type Tile struct {
+	Value    int
+	Location string
+	GameID   string
 }
 
-func visible(square Square) bool {
+func visible(square Tile) bool {
 	return square.Value > 0
 }
 
 type MineView struct {
 	Remaining int
-	Squares   [][]Square
+	Squares   [][]Tile
+	Name      string
 }
 type MainData struct {
 	Mine MineView
 }
 
-func convert(field [][]int, game string) [][]Square {
-	squares := make([][]Square, len(field))
+func convert(field [][]int, game string) [][]Tile {
+	squares := make([][]Tile, len(field))
 	for i := range squares {
-		squares[i] = make([]Square, len(field[i]))
+		squares[i] = make([]Tile, len(field[i]))
 	}
 	for i := range field {
 		for j := range field[i] {
-			squares[i][j] = Square{
-				Value: field[i][j],
-				Name:  fmt.Sprintf("%d_%d", i, j),
-				Game:  game,
+			squares[i][j] = Tile{
+				Value:    field[i][j],
+				Location: fmt.Sprintf("%d_%d", i, j),
+				GameID:   game,
 			}
 		}
 	}
 	return squares
 }
-func FromBoard(board generation.Board) MineView {
+func FromBoard(board generation.Board, name string) MineView {
 	return MineView{
 		Remaining: board.Mines,
-		Squares:   convert(board.Field, "1"),
+		Squares:   convert(board.Field, name),
 	}
 }
-func FromGame(game game.Game) MineView {
+func FromGame(game game.Game, name string) MineView {
 	return MineView{
 		Remaining: game.Board.Mines,
-		Squares:   convert(game.Revealed, "2"),
+		Squares:   convert(game.Revealed, name),
 	}
 }
 func Generate() *template.Template {

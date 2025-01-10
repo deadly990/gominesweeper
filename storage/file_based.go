@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"log"
@@ -64,7 +63,7 @@ func (gameSave *GameSave) Save(name string) error {
 	if errors.Is(err, fs.ErrNotExist) {
 		os.Mkdir(PathCrumb, 0755)
 	}
-	path := filepath.Join(PathCrumb, fmt.Sprintf("%s-%d.sweeper", name, gameSave.Seed))
+	path := filepath.Join(PathCrumb, name+".sweeper")
 	file, err := os.Create(path)
 	if err != nil {
 		return err

@@ -66,7 +66,7 @@ func (game *Game) isValidClear(coord Coordinate) bool {
 }
 
 func (game *Game) isRevealed(coord Coordinate) bool {
-	return *game.tileValue(coord) < 0
+	return *game.tileValue(coord) >= 0
 }
 
 func (game *Game) revealTileValue(coord Coordinate) {

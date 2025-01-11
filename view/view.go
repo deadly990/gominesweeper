@@ -15,7 +15,7 @@ type Tile struct {
 }
 
 func visible(square Tile) bool {
-	return square.Value > 0
+	return square.Value >= 0
 }
 
 type MineView struct {

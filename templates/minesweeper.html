@@ -5,7 +5,19 @@
         <tr class="h-5">
             {{range .}}
                 <td class="w-5 border border-solid border-black border-collapse">
-                    <a class="w-5 h-5" id="{{.Location}}" href="/game/{{.GameID}}/click/{{.Location}}">{{if IsVisible .}} {{if eq .Value 9}} <img src="/static/mine.png"> {{else}} {{.Value}} {{end}} {{else}} <div class="w-5 h-5"></div> {{end}}</a>
+                    {{if IsVisible .}} 
+                        {{if eq .Value 9}} 
+                            <img src="/static/mine.png"> 
+                        {{else if eq .Value 0}}
+                            <div class="w-5 h-5"></div>
+                        {{else}} 
+                            {{.Value}} 
+                        {{end}} 
+                    {{else}} 
+                    <a class="w-5 h-5" id="{{.Location}}" href="/game/{{.GameID}}/click/{{.Location}}">
+                        <div class="w-5 h-5 bg-slate-200"></div> 
+                    </a>
+                    {{end}}
                 </td>
             {{end}}
         </tr>

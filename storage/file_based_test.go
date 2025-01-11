@@ -21,9 +21,9 @@ func TestEncoding(test *testing.T) {
 		{1, 2, -9, 1},  // [ 1,  2, -9, 1]
 		{0, 1, 1, 1},   // [ 0,  1,  1, 1]
 	}
-	game := game.NewGame(board)
-	game.Clear(0, 3)
-	gameSave := FromGame(*game)
+	testGame := game.NewGame(board)
+	testGame.Move(game.Coordinate{X: 3, Y: 0}, testGame.Clear)
+	gameSave := FromGame(*testGame)
 	buf := new(bytes.Buffer)
 	err := gameSave.Encode(buf)
 	if err != nil {

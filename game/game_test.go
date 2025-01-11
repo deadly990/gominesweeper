@@ -48,7 +48,7 @@ func TestClearProliferate(test *testing.T) {
 	}
 
 	game := *NewGame(board)
-	game.Clear(4, 3)
+	game.Move(Coordinate{3, 4}, game.Clear)
 	if !areArraysEqual(game.Revealed, expected) {
 		log.Printf("Move did not clear all blank tiles in the move area and reveal adjacent hints")
 		test.Fail()
@@ -75,7 +75,7 @@ func TestDiagonalCornerReveal(test *testing.T) {
 	}
 
 	game := *NewGame(board)
-	game.Clear(4, 0)
+	game.Move(Coordinate{0, 4}, game.Clear)
 
 	if !areArraysEqual(game.Revealed, expected) {
 		log.Printf("Move did not go as expected.")

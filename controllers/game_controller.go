@@ -24,6 +24,6 @@ func RunClickCommand(gameInstance game.Game, command ClickCommand) game.Game {
 	// case rightClick:
 	// case middleClick:
 	// }
-	gameInstance.Clear(command.YCoordinate, command.XCoordinate)
+	gameInstance.Move(game.Coordinate{X: command.XCoordinate, Y: command.YCoordinate}, gameInstance.Clear)
 	return gameInstance
 }

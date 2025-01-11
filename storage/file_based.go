@@ -53,7 +53,9 @@ func (gameSave *GameSave) ToGame() *game.Game {
 	}
 	game := game.NewGame(*board)
 	game.Moves = translateMoves(gameSave.Moves)
-
+	for _, move := range game.Moves { // Make all the moves stored in the save without adding to Moves.
+		game.Clear(move)
+	}
 	return game
 }
 
@@ -69,7 +71,7 @@ func translateCoordinates(coordinates []game.Coordinate) []Move {
 func translateMoves(moves []Move) []game.Coordinate {
 	coordinates := []game.Coordinate{}
 	for _, move := range moves {
-		translation := game.Coordinate{move.X, move.Y}
+		translation := game.Coordinate{X: move.X, Y: move.Y}
 		coordinates = append(coordinates, translation)
 	}
 	return coordinates
@@ -107,6 +109,7 @@ func Load(name string) *GameSave {
 	if decodeErr != nil {
 		panic(decodeErr)
 	}
+
 	return &gameSave
 }
 

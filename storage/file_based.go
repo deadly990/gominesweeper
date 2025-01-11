@@ -97,20 +97,20 @@ func (gameSave *GameSave) Encode(writer io.Writer) error {
 	return encoder.Encode(gameSave)
 }
 
-func Load(name string) *GameSave {
+func Load(name string) (*GameSave, error) {
 	path := filepath.Join(PathCrumb, name+".sweeper")
-	buffer, readErr := os.ReadFile(path)
-	if readErr != nil {
-		panic(readErr)
+	buffer, err := os.ReadFile(path)
+	if err != nil {
+		return &GameSave{}, err
 	}
 	decoder := json.NewDecoder(bytes.NewReader(buffer))
 	gameSave := GameSave{}
-	decodeErr := decoder.Decode(&gameSave)
-	if decodeErr != nil {
-		panic(decodeErr)
+	err = decoder.Decode(&gameSave)
+	if err != nil {
+		return &GameSave{}, err
 	}
 
-	return &gameSave
+	return &gameSave, nil
 }
 
 // Decode populates a GameSave with data from an io.Reader.

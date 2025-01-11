@@ -1,0 +1,18 @@
+{{define "game"}}
+
+<html>
+    <link rel="stylesheet" href="/static/css/tailwind.css" />
+    <head>
+        <title>MineSweeper Go</title>
+    </head>
+    <body>
+        <div>
+            {{template "minesweeper" .Mine}}
+        </div>
+    </body>
+</html>
+
+
+{{end}}
+
+{{template "game" .}}

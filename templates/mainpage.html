@@ -5,11 +5,26 @@
         <title>MineSweeper Go</title>
     </head>
     <body>
-        {{template "minesweeper" .Mine}}
+        <div>
+            <form action="/game/generate">
+                <label for="difficulty">Difficulty:</label>
+                <select name="difficulty" id="difficulty">
+                    <option value="beginner" selected>Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="submit" value="Generate">
+            </form>
+            <form action="/game/load">
+                <label for="name">Save Name:</label>
+                <input type="text" name="name" id="name">
+                <input type="submit" value="Load">
+            </form>
+            <br>
+        </div>
     </body>
 </html>
 {{end}}
-
-
 
 {{template "mainpage" .}}

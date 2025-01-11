@@ -38,7 +38,12 @@ func main() {
 
 	r.Route("/game", func(r chi.Router) {
 		r.Get("/", rootHandler)
-
+		r.Route("/generate", func(r chi.Router) {
+			r.Get("/", generateHandler)
+		})
+		r.Route("/load", func(r chi.Router) {
+			r.Get("/", loadHandler)
+		})
 		r.Route(fmt.Sprintf("/{%s}/click/{%s}", GameIDString, ClickLocationString), func(r chi.Router) {
 			r.Use(GameCtx)
 			r.Use(ClickCtx)
@@ -48,11 +53,8 @@ func main() {
 	r.Get("/test", http.HandlerFunc(rootHandler))
 	addr := flag.String("addr", ":80", "http service address")
 	flag.Parse()
-	// http.Handle("/test", http.HandlerFunc(rootHandler))
 	fs := http.FileServer(http.Dir("./static"))
 	r.Handle("/static/*", http.StripPrefix("/static/", fs))
-
-	// http.Handle("/static/", http.StripPrefix("/static/", fs))
 	err := http.ListenAndServe(*addr, r)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
@@ -60,23 +62,114 @@ func main() {
 }
 
 func rootHandler(w http.ResponseWriter, req *http.Request) {
+	err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", nil)
+	if err != nil {
+		log.Fatal("ExecuteTemplate:", err)
+	}
+}
+
+func generateHandler(w http.ResponseWriter, req *http.Request) {
+	mines, width, height, err := parseGenerationForm(req)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	newBoard, boardErr := generation.NewBoard(25, 10, 10, int64(random.Int63()))
+	newBoard, boardErr := generation.NewBoard(mines, width, height, random.Int63())
 	if boardErr != nil {
 		log.Println("NewBoard:", boardErr)
 		http.Error(w, boardErr.Error(), 500)
 		return
 	}
-	game := game.NewGame(*newBoard)
 
+	game := game.NewGame(*newBoard)
 	gameName := generateName(rand.Int63())
 	mineView := view.FromGame(*game, gameName)
 	mainData := view.MainData{Mine: mineView}
-	err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", mainData)
+	mainPageTemplate.ExecuteTemplate(w, "game.html", mainData)
+	storage.FromGame(*game).Save(gameName)
+}
+
+func clickHandler(w http.ResponseWriter, req *http.Request) {
+	// Handle click
+	gameCtx := req.Context().Value(GameIDString).(string)
+	clickCtx := req.Context().Value(ClickLocationString).(string)
+
+	coord, err := parseClickLocation(clickCtx)
+	if err != nil {
+		log.Fatal("parseClickLocation:", err)
+	}
+	gameSave, err := storage.Load(gameCtx)
+	if err != nil {
+		// Return to mainpage is there was an error loading from click.
+		// Likely would be due to user manipulation of url.
+		err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", nil)
+		if err != nil {
+			log.Fatal("ExecuteTemplate:", err)
+		}
+	}
+	game := gameSave.ToGame()
+	game.Move(coord, game.Clear)
+
+	storage.FromGame(*game).Save(gameCtx)
+
+	// Display updated board
+	mineView := view.FromGame(*game, gameCtx)
+	mainData := view.MainData{Mine: mineView}
+	err = mainPageTemplate.ExecuteTemplate(w, "game.html", mainData)
 	if err != nil {
 		log.Fatal("ExecuteTemplate:", err)
 	}
-	storage.FromGame(*game).Save(gameName)
+
+	log.Printf("Game: %s Click: %s", gameCtx, clickCtx)
+}
+
+func loadHandler(w http.ResponseWriter, req *http.Request) {
+	saveName := req.FormValue("name") // User input can currently cause panic via GameSave#Load
+	gameSave, err := storage.Load(saveName)
+	if err != nil {
+		// Return to main page if there was an error loading user input save name.
+		err := mainPageTemplate.ExecuteTemplate(w, "mainpage.html", nil)
+		if err != nil {
+			log.Fatal("ExecuteTemplate:", err)
+		}
+		return
+	}
+	game := gameSave.ToGame()
+	mineView := view.FromGame(*game, saveName)
+	mainData := view.MainData{Mine: mineView}
+	err = mainPageTemplate.ExecuteTemplate(w, "game.html", mainData)
+	if err != nil {
+		log.Fatal("ExecuteTemplate:", err)
+	}
+}
+
+func parseGenerationForm(req *http.Request) (int, int, int, error) {
+	switch difficulty := req.FormValue("difficulty"); difficulty {
+	case "beginner":
+		return 10, 8, 8, nil
+	case "intermediate":
+		return 40, 16, 16, nil
+	case "expert":
+		return 99, 30, 16, nil
+	case "custom":
+		mines, err := strconv.Atoi(req.Form.Get("mines"))
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		width, err := strconv.Atoi(req.Form.Get("width"))
+		if err != nil {
+			return mines, 0, 0, err
+		}
+		height, err := strconv.Atoi(req.Form.Get("height"))
+		if err != nil {
+			return mines, width, 0, err
+		}
+		return mines, width, height, nil
+	default:
+		return 0, 0, 0, fmt.Errorf("a valid difficulty was not sent: %s", difficulty)
+	}
 }
 
 func generateName(seed int64) string {
@@ -100,30 +193,6 @@ func ClickCtx(next http.Handler) http.Handler {
 		ctx := context.WithValue(req.Context(), ClickLocationString, click)
 		next.ServeHTTP(w, req.WithContext(ctx))
 	})
-}
-func clickHandler(w http.ResponseWriter, req *http.Request) {
-	// Handle click
-	gameCtx := req.Context().Value(GameIDString).(string)
-	clickCtx := req.Context().Value(ClickLocationString).(string)
-
-	coord, err := parseClickLocation(clickCtx)
-	if err != nil {
-		log.Fatal("parseClickLocation:", err)
-	}
-	game := storage.Load(gameCtx).ToGame()
-	game.Move(coord, game.Clear)
-
-	storage.FromGame(*game).Save(gameCtx)
-
-	// Display updated board
-	mineView := view.FromGame(*game, gameCtx)
-	mainData := view.MainData{Mine: mineView}
-	err = mainPageTemplate.ExecuteTemplate(w, "mainpage.html", mainData)
-	if err != nil {
-		log.Fatal("ExecuteTemplate:", err)
-	}
-
-	log.Printf("Game: %s Click: %s", gameCtx, clickCtx)
 }
 
 func parseClickLocation(clickCtx string) (game.Coordinate, error) {
